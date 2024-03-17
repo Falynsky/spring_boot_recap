@@ -1,5 +1,8 @@
 package pl.falynsky.course1.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -39,10 +42,12 @@ public class PostService {
         return postRepository.findAllByTitle(title);
     }
 
+    @Cacheable(value = "Post", key = "#id")
     public Post getPost(long id) {
         return postRepository.findById(id).orElseThrow();
     }
 
+    @Cacheable(value = "PostWithComments")
     public List<Post> getPostsWithComments(int page, Sort.Direction sort) {
         List<Post> allPosts = postRepository.findAllPosts(
                 PageRequest.of(page, PAGE_SIZE, Sort.by(sort, "id"))
@@ -65,6 +70,7 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    @CachePut(value = "Post", key = "#result.id")
     @Transactional
     public Post updatePost(Post post) {
         Post editedPost = postRepository.findById(post.getId()).orElseThrow();
@@ -76,5 +82,9 @@ public class PostService {
 
     public void deletePost(long id) {
         postRepository.deleteById(id);
+    }
+
+    @CacheEvict(value = "PostWithComments") //todo: wywołać można tylko z innego beana, inny aspekt
+    public void clearPostWithComments() {
     }
 }

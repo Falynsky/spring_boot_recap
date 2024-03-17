@@ -1,6 +1,7 @@
 package pl.falynsky.course1.controller;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pl.falynsky.course1.controller.dto.PostDTO;
 import pl.falynsky.course1.model.Post;
@@ -18,15 +19,19 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public List<PostDTO> getPosts(@RequestParam(required = false) Integer page, Sort.Direction sort) {
-        int pageNumber = page!= null && page > 0 ? page : 0;
+    public List<PostDTO> getPosts(
+            @RequestParam(required = false) Integer page,
+            Sort.Direction sort,
+            @AuthenticationPrincipal String user
+    ) {
+        int pageNumber = page != null && page > 0 ? page : 0;
         Sort.Direction sortDirection = sort != null ? sort : Sort.Direction.ASC;
         return PostDTOMapper.mapToPostDTOs(postService.getPosts(pageNumber, sortDirection));
     }
 
     @GetMapping("/posts/comments")
     public List<Post> getPostsWithComments(@RequestParam(required = false) Integer page, Sort.Direction sort) {
-        int pageNumber = page!= null && page > 0 ? page : 0;
+        int pageNumber = page != null && page > 0 ? page : 0;
         Sort.Direction sortDirection = sort != null ? sort : Sort.Direction.ASC;
         return postService.getPostsWithComments(pageNumber, sortDirection);
     }

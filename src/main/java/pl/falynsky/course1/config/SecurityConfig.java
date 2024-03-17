@@ -1,6 +1,7 @@
 package pl.falynsky.course1.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -44,19 +46,22 @@ public class SecurityConfig {
     private final RestAuthenticationSuccessHandler successHandler;
     private final DataSource dataSource;
     private final RestAuthenticationFailureHandler failureHandler;
+    private final String secret;
 
     public SecurityConfig(
             AuthenticationConfiguration authenticationConfiguration,
             ObjectMapper objectMapper,
             RestAuthenticationSuccessHandler successHandler,
             DataSource dataSource,
-            RestAuthenticationFailureHandler failureHandler
+            RestAuthenticationFailureHandler failureHandler,
+            @Value("${jwt.secret}") String secret
     ) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.objectMapper = objectMapper;
         this.dataSource = dataSource;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
+        this.secret = secret;
     }
 
     @Bean
@@ -78,7 +83,9 @@ public class SecurityConfig {
                         auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
                                 .anyRequest().authenticated()
                 )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilter(authenticationFilter())
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), users(), secret))
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
     }
