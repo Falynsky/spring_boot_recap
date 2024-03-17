@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,59 +14,87 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String[] AUTH_WHITELIST = {
+            // -- Swagger UI v2
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            // -- Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+            // other public endpoints of your API may be appended to this array
+    };
+
+    private final AuthenticationConfiguration authenticationConfiguration;
     private final ObjectMapper objectMapper;
     private final RestAuthenticationSuccessHandler successHandler;
-
+    private final DataSource dataSource;
     private final RestAuthenticationFailureHandler failureHandler;
 
-    public SecurityConfig(ObjectMapper objectMapper, RestAuthenticationSuccessHandler successHandler, RestAuthenticationFailureHandler failureHandler) {
+    public SecurityConfig(
+            AuthenticationConfiguration authenticationConfiguration,
+            ObjectMapper objectMapper,
+            RestAuthenticationSuccessHandler successHandler,
+            DataSource dataSource,
+            RestAuthenticationFailureHandler failureHandler
+    ) {
+        this.authenticationConfiguration = authenticationConfiguration;
         this.objectMapper = objectMapper;
+        this.dataSource = dataSource;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
     }
 
     @Bean
     public UserDetailsService users() {
-        UserDetails user1 = User.withUsername("test")
+        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+        UserDetails test = User.withUsername("test")
                 .password(passwordEncoder().encode("test"))
-                .roles("USER")
+                .authorities("USER_ROLE")
                 .build();
-        UserDetails admin = User.withUsername("admin")
-                .password(passwordEncoder().encode("adminPass"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(user1, admin);
+        users.createUser(test);
+
+        return users;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/swagger-ui/index.html").permitAll()
-                                .requestMatchers("/webjars/**").permitAll()
-                                .requestMatchers("/swagger-resources/**").permitAll()
-                                .anyRequest().authenticated())
-                .addFilter(authenticationFilter(http))
+                .authorizeHttpRequests(
+                        auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
+                                .anyRequest().authenticated()
+                )
+                .addFilter(authenticationFilter())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
-
     }
 
-    public JsonObjectAuthenticationFilter authenticationFilter(HttpSecurity http) {
+    public JsonObjectAuthenticationFilter authenticationFilter() throws Exception {
         JsonObjectAuthenticationFilter filter = new JsonObjectAuthenticationFilter(objectMapper);
         filter.setAuthenticationSuccessHandler(successHandler);
         filter.setAuthenticationFailureHandler(failureHandler);
-        filter.setAuthenticationManager(http.getSharedObject(AuthenticationManager.class));
+        filter.setAuthenticationManager(authenticationManager());
+
         return filter;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
