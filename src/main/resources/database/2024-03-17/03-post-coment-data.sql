@@ -1,3 +1,5 @@
+--liquibase formatted sql
+--changeset falynsky:1
 
 INSERT INTO POST( title, content) VALUES('Hello World', 'This is my first post!');
 INSERT INTO POST(title, content) VALUES('Hello World2', 'This is my second post!');

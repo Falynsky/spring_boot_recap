@@ -1,13 +1,5 @@
-DROP TABLE IF EXISTS COMMENT;
-DROP TABLE IF EXISTS POST;
-
-CREATE TABLE POST
-(
-    id      SERIAL PRIMARY KEY,
-    title   VARCHAR(255) NOT NULL,
-    content VARCHAR(255)
-);
-
+--liquibase formatted sql
+--changeset falynsky:1
 CREATE TABLE COMMENT
 (
     id      SERIAL PRIMARY KEY,
