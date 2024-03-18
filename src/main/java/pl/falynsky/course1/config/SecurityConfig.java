@@ -71,7 +71,10 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("test"))
                 .authorities("USER_ROLE")
                 .build();
-        users.createUser(test);
+        String username = test.getUsername();
+        if (!users.userExists(username)) {
+            users.createUser(test);
+        }
 
         return users;
     }
