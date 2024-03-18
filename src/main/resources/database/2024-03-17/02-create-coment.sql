@@ -2,7 +2,7 @@
 --changeset falynsky:1
 CREATE TABLE COMMENT
 (
-    id      SERIAL PRIMARY KEY,
+    id      BIGSERIAL PRIMARY KEY,
     post_id BIGINT       NOT NULL,
     content VARCHAR(255) NULL,
     created TIMESTAMP

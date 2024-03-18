@@ -10,4 +10,5 @@
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
 
     <includeAll path="database"/>
+
 </databaseChangeLog>
