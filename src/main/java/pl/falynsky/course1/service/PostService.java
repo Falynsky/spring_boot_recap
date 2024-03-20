@@ -29,6 +29,10 @@ public class PostService {
         this.commentRepository = commentRepository;
     }
 
+    public List<Post> getPosts() {
+        return postRepository.findAllPosts();
+    }
+
     public List<Post> getPosts(int page, Sort.Direction sort) {
         return postRepository.findAllPosts(
                 PageRequest.of(

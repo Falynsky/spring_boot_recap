@@ -16,4 +16,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("select distinct p from Post p")
     List<Post> findAllPosts(Pageable page);
+    @Query("select distinct p from Post p")
+    List<Post> findAllPosts();
 }

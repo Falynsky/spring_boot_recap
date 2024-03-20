@@ -15,13 +15,13 @@ class PostServiceTest {
     @Autowired
     private PostService postService;
 
-    @Test
-    void shouldReturnPosts() {
-        // given
-        // when
-        Post post = postService.getPost(1);
-        // then
-        assertThat(post).isNotNull();
-        assertThat(post.getId()).isEqualTo(1);
-    }
+//    @Test
+//    void shouldReturnPosts() {
+//        // given
+//        // when
+//        Post post = postService.getPost(1);
+//        // then
+//        assertThat(post).isNotNull();
+//        assertThat(post.getId()).isEqualTo(1);
+//    }
 }

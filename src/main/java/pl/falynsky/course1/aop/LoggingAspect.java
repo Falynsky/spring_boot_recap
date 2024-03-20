@@ -31,6 +31,7 @@ public class LoggingAspect {
         long start = System.nanoTime();
         Object proceed = joinPoint.proceed();
         log.info(":: Time :: " + (System.nanoTime() - start) + "ms");
+
         return proceed;
     }
 }
