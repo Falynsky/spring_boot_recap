@@ -20,25 +20,25 @@ public class LoginControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-//    @Test
-//    void shouldLoginAndGetContent() throws Exception {
-//        MvcResult login = mockMvc.perform(post("/login")
-//                        .content("{\"username\":\"test\",\"password\":\"test\"}")
-//                )
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andReturn();
-//        String token = login.getResponse().getHeader("Authorization");
-//
-//        mockMvc.perform(get("/secured")
-//                        .header("Authorization", token)
-//                )
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(content().string("secured"));
-//
-//        mockMvc.perform(get("/secured"))
-//                .andDo(print())
-//                .andExpect(status().isUnauthorized());
-//    }
+    @Test
+    void shouldLoginAndGetContent() throws Exception {
+        MvcResult login = mockMvc.perform(post("/login")
+                        .content("{\"username\":\"test\",\"password\":\"test\"}")
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = login.getResponse().getHeader("Authorization");
+
+        mockMvc.perform(get("/secured")
+                        .header("Authorization", token)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("secured"));
+
+        mockMvc.perform(get("/secured"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
 }
