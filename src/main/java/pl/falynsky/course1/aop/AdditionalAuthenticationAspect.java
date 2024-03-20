@@ -12,7 +12,10 @@ import pl.falynsky.course1.AdditionalAuthentication;
 public class AdditionalAuthenticationAspect {
 
     @Before("@annotation(authentication) && args(credentials,..)")
-    public void before(AdditionalAuthentication authentication, AdditionalCredentials credentials){
+    public void before(
+            AdditionalAuthentication authentication,
+            AdditionalCredentials credentials
+    ){
         log.info("AdditionalAuthenticationAspect");
         String username = credentials.getUsername();
         log.info("  username:" + username);

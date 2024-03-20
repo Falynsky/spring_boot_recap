@@ -48,7 +48,8 @@ public class PostService {
 
     @Cacheable(value = "Post", key = "#id")
     public Post getPost(long id) {
-        return postRepository.findById(id).orElseThrow();
+        return postRepository.findById(id)
+                .orElseThrow();
     }
 
     @Cacheable(value = "PostWithComments")
@@ -61,6 +62,7 @@ public class PostService {
                 .toList();
         List<Comment> comments = commentRepository.findAllByPostIdIn(ids);
         allPosts.forEach(post -> post.setComments(extractComment(comments, post.getId())));
+
         return allPosts;
     }
 

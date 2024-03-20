@@ -48,6 +48,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                     .build()
                     .verify(token.replace(TOKEN_PREFIX, ""))
                     .getSubject();
+
             if (username != null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();

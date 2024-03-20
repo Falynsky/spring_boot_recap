@@ -28,9 +28,13 @@ public class JsonObjectAuthenticationFilter extends UsernamePasswordAuthenticati
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
+
             LoginCredentials loginCredentials = objectMapper.readValue(sb.toString(), LoginCredentials.class);
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginCredentials.getUsername(), loginCredentials.getPassword());
+            String username = loginCredentials.getUsername();
+            String password = loginCredentials.getPassword();
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
             setDetails(request, token);
+
             return getAuthenticationManager().authenticate(token);
         } catch (IOException exception) {
             throw new IllegalArgumentException(exception.getMessage());
