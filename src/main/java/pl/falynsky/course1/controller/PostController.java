@@ -2,6 +2,7 @@ package pl.falynsky.course1.controller;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponents;
@@ -45,9 +46,9 @@ public class PostController {
     ) {
         int pageNumber = page != null && page > 0 ? page : 0;
         Sort.Direction sortDirection = sort != null ? sort : Sort.Direction.ASC;
-        List<Post> posts = postService.getPosts(pageNumber, sortDirection);
+        List<Post> posts = postService.getPosts(pageNumber, sortDirection, Boolean.FALSE);
 
-        return PostDTOMapper.mapToPostDTOs(posts);
+        return postMapper.mapPostsToPostDTOs(posts);
     }
 
     @GetMapping("/posts/comments")
@@ -55,7 +56,7 @@ public class PostController {
         int pageNumber = page != null && page > 0 ? page : 0;
         Sort.Direction sortDirection = sort != null ? sort : Sort.Direction.ASC;
 
-        return postService.getPostsWithComments(pageNumber, sortDirection);
+        return postService.getPostsWithComments(pageNumber, sortDirection, Boolean.FALSE);
     }
 
     @GetMapping("/posts/title/{title}")
@@ -105,6 +106,7 @@ public class PostController {
         return postService.updatePost(post);
     }
 
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/post/{id}")
     public void deletePost(@PathVariable long id) {
         postService.deletePost(id);

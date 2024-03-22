@@ -1,0 +1,7 @@
+-- --liquibase formatted sql
+-- --changeset falynsky:1
+-- CREATE TABLE USERS_ROLES (
+--     id      BIGSERIAL PRIMARY KEY,
+--     user_id BIGINT NOT NULL,
+--     role_id BIGINT NOT NULL
+-- );

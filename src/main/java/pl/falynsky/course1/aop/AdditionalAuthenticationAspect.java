@@ -22,7 +22,7 @@ public class AdditionalAuthenticationAspect {
         log.info("  password:" + credentials.getPassword());
 
         if(username.equals("test")){
-            throw new IllegalArgumentException("We say NO for test users");
+            throw new IllegalArgumentException("We say NO for test user");
         }
     }
 }

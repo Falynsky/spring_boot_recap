@@ -1,14 +1,15 @@
 package pl.falynsky.course1.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Entity
+@Entity(name = "users")
 @Getter
 @Setter
-public class Users {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User {
 
     @Id
     private String username;

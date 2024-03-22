@@ -4,5 +4,6 @@ CREATE TABLE POST
 (
     id      BIGSERIAL PRIMARY KEY,
     title   VARCHAR(255) NOT NULL,
-    content VARCHAR(255)
+    content VARCHAR(255),
+    deleted BOOLEAN DEFAULT FALSE
 );

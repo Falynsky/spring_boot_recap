@@ -1,5 +1,8 @@
 package pl.falynsky.course1.service;
 
+import jakarta.persistence.EntityManager;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,29 +20,36 @@ import java.util.List;
 @Service
 public class PostService {
 
-    public static final int PAGE_SIZE = 2;
+    public static final int PAGE_SIZE = 5;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-
+    private EntityManager entityManager;
     public PostService(
             PostRepository postRepository,
-            CommentRepository commentRepository
+            CommentRepository commentRepository,
+            EntityManager entityManager
     ) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.entityManager = entityManager;
     }
 
     public List<Post> getPosts() {
         return postRepository.findAllPosts();
     }
 
-    public List<Post> getPosts(int page, Sort.Direction sort) {
-        return postRepository.findAllPosts(
+    public List<Post> getPosts(int page, Sort.Direction sort, Boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedPostFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Post> allPosts = postRepository.findAllPosts(
                 PageRequest.of(
                         page, PAGE_SIZE,
                         Sort.by(sort, "id")
                 )
         );
+        session.disableFilter("deletedPostFilter");
+        return allPosts;
     }
 
     public List<Post> getPostsByTitle(String title) {
@@ -53,10 +63,14 @@ public class PostService {
     }
 
     @Cacheable(value = "PostWithComments")
-    public List<Post> getPostsWithComments(int page, Sort.Direction sort) {
+    public List<Post> getPostsWithComments(int page, Sort.Direction sort, Boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedPostFilter");
+        filter.setParameter("isDeleted", isDeleted);
         List<Post> allPosts = postRepository.findAllPosts(
                 PageRequest.of(page, PAGE_SIZE, Sort.by(sort, "id"))
         );
+        session.disableFilter("deletedPostFilter");
         List<Long> ids = allPosts.stream()
                 .map(Post::getId)
                 .toList();

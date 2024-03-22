@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -37,7 +38,14 @@ public class SecurityConfig {
             "/webjars/**",
             // -- Swagger UI v3 (OpenAPI)
             "/v3/api-docs/**",
-            "/swagger-ui/**"
+            "/swagger-ui/**",
+            "/login"
+    };
+    private static final String[] CONTROLLERS = {
+            "/posts",
+            "/posts/**",
+            "/post/**",
+            "/simple/**"
     };
 
     private final AuthenticationConfiguration authenticationConfiguration;
@@ -65,24 +73,36 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService users() {
-        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+        JdbcUserDetailsManager user = new JdbcUserDetailsManager(dataSource);
         UserDetails test = User.withUsername("test")
                 .password(passwordEncoder().encode("test"))
-                .authorities("USER_ROLE")
+                .roles("USER")
                 .build();
         String username = test.getUsername();
-        if (!users.userExists(username)) {
-            users.createUser(test);
+        if (!user.userExists(username)) {
+            user.createUser(test);
         }
 
-        return users;
+        UserDetails admin = User.withUsername("admin")
+                .password(passwordEncoder().encode("admin"))
+                .roles("ADMIN")
+                .build();
+        String adminusername = admin.getUsername();
+        if (!user.userExists(adminusername)) {
+            user.createUser(admin);
+        }
+
+        return user;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
+                        auth -> auth
+                                .requestMatchers(AUTH_WHITELIST).permitAll()
+                                .requestMatchers(HttpMethod.GET, CONTROLLERS).hasAuthority("ROLE_USER")
+                                .requestMatchers(CONTROLLERS).hasAuthority("ROLE_ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -90,6 +110,7 @@ public class SecurityConfig {
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), users(), secret))
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
+
     }
 
     public JsonObjectAuthenticationFilter authenticationFilter() throws Exception {
