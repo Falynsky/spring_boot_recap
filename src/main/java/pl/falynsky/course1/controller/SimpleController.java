@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import pl.falynsky.course1.AdditionalAuthentication;
 import pl.falynsky.course1.aop.dto.AdditionalCredentialsDto;
+import pl.falynsky.course1.exception.CustomException;
 import pl.falynsky.course1.service.SimpleService;
 
 @RestController
@@ -20,7 +21,8 @@ public class SimpleController {
     @GetMapping("/something")
     public String getSomething(){
         log.info("Controller: getSomething");
-        return simpleService.getSomethingFormService();
+        throw new CustomException();
+//        return simpleService.getSomethingFormService();
     }
 
     @PostMapping("/somethingElse")
