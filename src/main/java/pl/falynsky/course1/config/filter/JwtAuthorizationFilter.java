@@ -1,4 +1,4 @@
-package pl.falynsky.course1.config;
+package pl.falynsky.course1.config.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -24,7 +24,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     private final UserDetailsService userDetailsService;
     private final String secret;
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, String secret) {
+    public JwtAuthorizationFilter(
+            AuthenticationManager authenticationManager,
+            UserDetailsService userDetailsService,
+            String secret
+    ) {
         super(authenticationManager);
         this.userDetailsService = userDetailsService;
         this.secret = secret;
@@ -33,13 +37,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
-        if (authentication == null) {
-            chain.doFilter(request, response);
-            return;
+        if (authentication != null) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         chain.doFilter(request, response);
     }
+
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
         String token = request.getHeader(TOKEN_HEADER);
@@ -55,6 +59,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 return new UsernamePasswordAuthenticationToken(username, null, authorities);
             }
         }
+
         return null;
     }
 }

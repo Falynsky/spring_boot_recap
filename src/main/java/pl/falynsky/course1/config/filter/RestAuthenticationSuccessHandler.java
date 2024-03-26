@@ -1,4 +1,4 @@
-package pl.falynsky.course1.config;
+package pl.falynsky.course1.config.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

@@ -1,6 +1,7 @@
 package pl.falynsky.course1.service;
 
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.cache.annotation.CacheEvict;
@@ -16,7 +17,12 @@ import pl.falynsky.course1.repository.CommentRepository;
 import pl.falynsky.course1.repository.PostRepository;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
+@Slf4j
 @Service
 public class PostService {
 
@@ -24,6 +30,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private EntityManager entityManager;
+
     public PostService(
             PostRepository postRepository,
             CommentRepository commentRepository,
@@ -48,7 +55,24 @@ public class PostService {
                         Sort.by(sort, "id")
                 )
         );
+        Predicate<List<Post>> predicate = posts -> posts.size() > 2;
+
+        if (predicate.test(allPosts)) {
+            log.info("Więcej niż 2 elementy w liście postów!");
+        }
+
+        Consumer<Post> consumer = post -> log.info(post.toString());
+        allPosts.forEach(consumer);
+
+        Function<Post, String> function = Post::getTitle;
+        allPosts.forEach(function::apply);
+
         session.disableFilter("deletedPostFilter");
+
+
+        Supplier<Post> supplier = Post::new;
+        allPosts.forEach(t -> supplier.get());
+        
         return allPosts;
     }
 

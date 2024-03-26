@@ -7,8 +7,10 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+
 @Configuration
-public class Config {
+public class SwaggerConfig {
 
     private static final String GET_BEARER_AUTH = "bearerAuth";
 

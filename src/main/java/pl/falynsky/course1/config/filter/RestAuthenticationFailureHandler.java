@@ -1,4 +1,4 @@
-package pl.falynsky.course1.config;
+package pl.falynsky.course1.config.filter;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -20,6 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import pl.falynsky.course1.config.filter.JsonObjectAuthenticationFilter;
+import pl.falynsky.course1.config.filter.JwtAuthorizationFilter;
+import pl.falynsky.course1.config.filter.RestAuthenticationFailureHandler;
+import pl.falynsky.course1.config.filter.RestAuthenticationSuccessHandler;
 
 import javax.sql.DataSource;
 
@@ -40,12 +43,6 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/login"
-    };
-    private static final String[] CONTROLLERS = {
-            "/posts",
-            "/posts/**",
-            "/post/**",
-            "/simple/**"
     };
 
     private final AuthenticationConfiguration authenticationConfiguration;
@@ -72,6 +69,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        auth -> auth
+                                .requestMatchers(AUTH_WHITELIST).permitAll()
+                                .requestMatchers("/something").hasAuthority("ROLE_USER")
+                                .anyRequest().authenticated()
+                )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // nie tworzy sesji http
+                .addFilter(authenticationFilter())
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), users(), secret))
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))) //zwraca zawsze 401 dla błędów
+                .build();
+
+    }
+
+    @Bean
     public UserDetailsService users() {
         JdbcUserDetailsManager user = new JdbcUserDetailsManager(dataSource);
         UserDetails test = User.withUsername("test")
@@ -87,37 +101,13 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("admin"))
                 .roles("ADMIN")
                 .build();
+
         String adminusername = admin.getUsername();
         if (!user.userExists(adminusername)) {
             user.createUser(admin);
         }
 
         return user;
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth
-                                .requestMatchers(AUTH_WHITELIST).permitAll()
-                                .anyRequest().authenticated()
-                )
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilter(authenticationFilter())
-                .addFilter(new JwtAuthorizationFilter(authenticationManager(), users(), secret))
-                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                .build();
-
-    }
-
-    public JsonObjectAuthenticationFilter authenticationFilter() throws Exception {
-        JsonObjectAuthenticationFilter filter = new JsonObjectAuthenticationFilter(objectMapper);
-        filter.setAuthenticationSuccessHandler(successHandler);
-        filter.setAuthenticationFailureHandler(failureHandler);
-        filter.setAuthenticationManager(authenticationManager());
-
-        return filter;
     }
 
     @Bean
@@ -128,5 +118,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private JsonObjectAuthenticationFilter authenticationFilter() throws Exception {
+        JsonObjectAuthenticationFilter filter = new JsonObjectAuthenticationFilter(objectMapper);
+        filter.setAuthenticationSuccessHandler(successHandler);
+        filter.setAuthenticationFailureHandler(failureHandler);
+        filter.setAuthenticationManager(authenticationManager());
+
+        return filter;
     }
 }

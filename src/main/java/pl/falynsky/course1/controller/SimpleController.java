@@ -19,10 +19,23 @@ public class SimpleController {
     private final SimpleService simpleService;
 
     @GetMapping("/something")
-    public String getSomething(){
+    public String getSomething() {
+        Object test = "dsad";
         log.info("Controller: getSomething");
+
+        if (test instanceof String stringTest) {
+            stringTest.toLowerCase();
+        } else if (test instanceof Boolean booleanTest) {
+            booleanTest.compareTo(true);
+        }
+
         throw new CustomException();
 //        return simpleService.getSomethingFormService();
+//        try {
+//            throw new CustomException();
+//        } catch (CustomException exc) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Foo Not Found", exc);
+//        }
     }
 
     @PostMapping("/somethingElse")
