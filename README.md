@@ -1,3 +1,7 @@
+# Attention
+
+A project created to practice building REST APIs in Spring and to learn new things.
+
 ## Working with docker without compose
 
 - `docker network create mynetwork`
