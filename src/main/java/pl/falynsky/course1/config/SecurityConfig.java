@@ -48,8 +48,8 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final ObjectMapper objectMapper;
     private final RestAuthenticationSuccessHandler successHandler;
-    private final DataSource dataSource;
     private final RestAuthenticationFailureHandler failureHandler;
+    private final DataSource dataSource;
     private final String secret;
 
     public SecurityConfig(

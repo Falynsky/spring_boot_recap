@@ -7,6 +7,7 @@ import org.hibernate.Session;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class PostService {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedPostFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Post> allPosts = postRepository.findAllPosts(
+        Page<Post> allPosts = postRepository.findAllPosts(
                 PageRequest.of(
                         page, PAGE_SIZE,
                         Sort.by(sort, "id")
@@ -57,7 +58,7 @@ public class PostService {
         );
         Predicate<List<Post>> predicate = posts -> posts.size() > 2;
 
-        if (predicate.test(allPosts)) {
+        if (predicate.test(allPosts.getContent())) {
             log.info("Więcej niż 2 elementy w liście postów!");
         }
 
@@ -73,7 +74,7 @@ public class PostService {
         Supplier<Post> supplier = Post::new;
         allPosts.forEach(t -> supplier.get());
         
-        return allPosts;
+        return allPosts.getContent();
     }
 
     public List<Post> getPostsByTitle(String title) {
@@ -91,7 +92,7 @@ public class PostService {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedPostFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Post> allPosts = postRepository.findAllPosts(
+        Page<Post> allPosts = postRepository.findAllPosts(
                 PageRequest.of(page, PAGE_SIZE, Sort.by(sort, "id"))
         );
         session.disableFilter("deletedPostFilter");
@@ -101,7 +102,7 @@ public class PostService {
         List<Comment> comments = commentRepository.findAllByPostIdIn(ids);
         allPosts.forEach(post -> post.setComments(extractComment(comments, post.getId())));
 
-        return allPosts;
+        return allPosts.getContent();
     }
 
     private List<Comment> extractComment(List<Comment> comments, long id) {
